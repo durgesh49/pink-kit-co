@@ -61,7 +61,7 @@ const Header = () => {
       <div className="container-tight flex items-center justify-between h-16 md:h-20 gap-3">
         {/* MOBILE MENU */}
         <button
-          className="md:hidden p-2 -ml-2"
+          className="hidden"
           onClick={() =>
             setOpen(!open)
           }
@@ -86,7 +86,7 @@ const Header = () => {
         </Link>
 
         {/* DESKTOP NAV */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="flex items-center gap-8">
           {links.map((l) => (
             <NavLink
               key={l.to}

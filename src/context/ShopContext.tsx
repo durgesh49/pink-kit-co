@@ -1,3 +1,5 @@
+import { useAuth } from "@/context/AuthContext";
+
 import {
   createContext,
   useContext,
@@ -56,6 +58,9 @@ export const ShopProvider = ({
 }: {
   children: ReactNode;
 }) => {
+
+  const { user } = useAuth();
+
   const [cart, setCart] =
     useState<CartItem[]>(() => {
       try {
@@ -100,6 +105,15 @@ export const ShopProvider = ({
     p: Product,
     size = "M"
   ) => {
+
+    if (!user) {
+      alert(
+        "Please login first ❤️"
+      );
+
+      return;
+    }
+
     setCart((c) => {
       const i = c.findIndex(
         (x) =>
@@ -165,7 +179,16 @@ export const ShopProvider = ({
 
   const toggleWishlist = (
     id: string
-  ) =>
+  ) => {
+
+    if (!user) {
+      alert(
+        "Please login first ❤️"
+      );
+
+      return;
+    }
+
     setWishlist((w) =>
       w.includes(id)
         ? w.filter(
@@ -173,6 +196,7 @@ export const ShopProvider = ({
           )
         : [...w, id]
     );
+  };
 
   const cartCount = cart.reduce(
     (s, x) => s + x.qty,

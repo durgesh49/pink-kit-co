@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { supabase } from "@/supabase";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // SIGNUP
       if (mode === "signup") {
         const { error } =
           await signUp(
@@ -56,20 +57,32 @@ const Login = () => {
         toast.success(
           "Account created 🎉"
         );
-      } else {
-        const { error } =
-          await signIn(
-            email,
-            password
-          );
 
-        if (error)
-          throw error;
+        // AUTO LOGOUT AFTER SIGNUP
+        await supabase.auth.signOut();
 
         toast.success(
-          "Welcome back 🔥"
+          "Please verify your email before login ❤️"
         );
+
+        setLoading(false);
+
+        return;
       }
+
+      // LOGIN
+      const { error } =
+        await signIn(
+          email,
+          password
+        );
+
+      if (error)
+        throw error;
+
+      toast.success(
+        "Welcome back 🔥"
+      );
 
       navigate("/");
     } catch (err: any) {

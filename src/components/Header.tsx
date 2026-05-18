@@ -1,4 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+
 import {
   Heart,
   ShoppingBag,
@@ -9,27 +10,17 @@ import {
 } from "lucide-react";
 
 import { useShop } from "@/context/ShopContext";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
-const links = [
-  {
-    to: "/",
-    label: "Home",
-  },
-  {
-    to: "/shop",
-    label: "Shop",
-  },
-  {
-    to: "/wishlist",
-    label: "Wishlist",
-  },
-];
+import { useState } from "react";
+
+import { cn } from "@/lib/utils";
 
 const Header = () => {
   const { cartCount, wishlist } =
     useShop();
+
+  const { isAdmin } = useAuth();
 
   const navigate = useNavigate();
 
@@ -39,7 +30,6 @@ const Header = () => {
   const [search, setSearch] =
     useState("");
 
-  // SEARCH
   const handleSearch = (
     e: React.FormEvent
   ) => {
@@ -59,23 +49,18 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container-tight flex items-center justify-between h-16 md:h-20 gap-3">
-        {/* MOBILE MENU */}
-        <button
-          className="hidden"
-          onClick={() =>
-            setOpen(!open)
-          }
-        >
-          {open ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
-        </button>
 
         {/* LOGO */}
         <Link
           to="/"
+          onClick={() => {
+            setTimeout(() => {
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              });
+            }, 100);
+          }}
           className="font-display text-2xl md:text-3xl font-semibold tracking-tight"
         >
           webkit
@@ -85,15 +70,60 @@ const Header = () => {
           store
         </Link>
 
-        {/* DESKTOP NAV */}
+        {/* NAV */}
         <nav className="flex items-center gap-8">
-          {links.map((l) => (
+          {/* HOME */}
+          <button
+            onClick={() => {
+              navigate("/");
+
+              setTimeout(() => {
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }, 100);
+            }}
+            className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
+          >
+            Home
+          </button>
+
+          {/* SHOP */}
+          <NavLink
+            to="/shop"
+            className={({ isActive }) =>
+              cn(
+                "text-sm font-medium story-link transition-colors",
+                isActive
+                  ? "text-primary"
+                  : "text-foreground/80 hover:text-foreground"
+              )
+            }
+          >
+            Shop
+          </NavLink>
+
+          {/* WISHLIST */}
+          <NavLink
+            to="/wishlist"
+            className={({ isActive }) =>
+              cn(
+                "text-sm font-medium story-link transition-colors",
+                isActive
+                  ? "text-primary"
+                  : "text-foreground/80 hover:text-foreground"
+              )
+            }
+          >
+            Wishlist
+          </NavLink>
+
+          {/* ADMIN */}
+          {isAdmin && (
             <NavLink
-              key={l.to}
-              to={l.to}
-              className={({
-                isActive,
-              }) =>
+              to="/admin"
+              className={({ isActive }) =>
                 cn(
                   "text-sm font-medium story-link transition-colors",
                   isActive
@@ -102,9 +132,9 @@ const Header = () => {
                 )
               }
             >
-              {l.label}
+              Admin
             </NavLink>
-          ))}
+          )}
         </nav>
 
         {/* SEARCH */}
@@ -129,6 +159,7 @@ const Header = () => {
 
         {/* RIGHT ICONS */}
         <div className="flex items-center gap-1 md:gap-2">
+
           <Link
             to="/login"
             className="p-2.5 rounded-full hover:bg-secondary transition-smooth"
@@ -163,45 +194,6 @@ const Header = () => {
           </Link>
         </div>
       </div>
-
-      {/* MOBILE MENU */}
-      {open && (
-        <nav className="md:hidden border-t border-border/50 py-4 px-6 space-y-4 animate-fade-in">
-          {/* MOBILE SEARCH */}
-          <form
-            onSubmit={handleSearch}
-            className="flex items-center bg-secondary rounded-full px-4 h-11"
-          >
-            <Search className="h-4 w-4 text-muted-foreground" />
-
-            <input
-              type="text"
-              placeholder="Search jerseys..."
-              value={search}
-              onChange={(e) =>
-                setSearch(
-                  e.target.value
-                )
-              }
-              className="bg-transparent outline-none border-none px-3 text-sm w-full"
-            />
-          </form>
-
-          {/* MOBILE LINKS */}
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              onClick={() =>
-                setOpen(false)
-              }
-              className="block text-sm font-medium"
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
-      )}
     </header>
   );
 };

@@ -94,16 +94,18 @@ const Index = () => {
                 </Link>
               </Button>
 
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="rounded-full h-12 px-8 text-base bg-card/60"
-              >
-                <a href="#trending">
-                  View trending
-                </a>
-              </Button>
+              <button
+  onClick={() => {
+    document
+      .getElementById("trending")
+      ?.scrollIntoView({
+        behavior: "smooth",
+      });
+  }}
+  className="rounded-full h-12 px-8 text-base bg-card/60 border border-border hover:bg-secondary transition-smooth"
+>
+  View trending
+</button>
             </div>
           </div>
 

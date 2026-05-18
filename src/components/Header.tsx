@@ -5,27 +5,26 @@ import {
   ShoppingBag,
   User,
   Search,
-  Menu,
-  X,
 } from "lucide-react";
 
 import { useShop } from "@/context/ShopContext";
 import { useAuth } from "@/context/AuthContext";
 
-import { useState } from "react";
-
 import { cn } from "@/lib/utils";
+
+import { useState } from "react";
 
 const Header = () => {
   const { cartCount, wishlist } =
     useShop();
 
-  const { isAdmin } = useAuth();
+  const {
+    user,
+    logout,
+    isAdmin,
+  } = useAuth();
 
   const navigate = useNavigate();
-
-  const [open, setOpen] =
-    useState(false);
 
   const [search, setSearch] =
     useState("");
@@ -72,6 +71,7 @@ const Header = () => {
 
         {/* NAV */}
         <nav className="flex items-center gap-8">
+
           {/* HOME */}
           <button
             onClick={() => {
@@ -157,16 +157,36 @@ const Header = () => {
           />
         </form>
 
-        {/* RIGHT ICONS */}
-        <div className="flex items-center gap-1 md:gap-2">
+        {/* RIGHT SIDE */}
+        <div className="flex items-center gap-3">
 
-          <Link
-            to="/login"
-            className="p-2.5 rounded-full hover:bg-secondary transition-smooth"
-          >
-            <User className="h-4.5 w-4.5" />
-          </Link>
+          {/* LOGIN / LOGOUT */}
+          {user ? (
+            <button
+              onClick={async () => {
+                await logout();
 
+                navigate("/");
+
+                window.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="p-2.5 rounded-full hover:bg-secondary transition-smooth"
+            >
+              <User className="h-4.5 w-4.5" />
+            </Link>
+          )}
+
+          {/* WISHLIST */}
           <Link
             to="/wishlist"
             className="relative p-2.5 rounded-full hover:bg-secondary transition-smooth"
@@ -180,6 +200,7 @@ const Header = () => {
             )}
           </Link>
 
+          {/* CART */}
           <Link
             to="/cart"
             className="relative p-2.5 rounded-full hover:bg-secondary transition-smooth"

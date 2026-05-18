@@ -43,8 +43,10 @@ const Login = () => {
     setLoading(true);
 
     try {
+
       // SIGNUP
       if (mode === "signup") {
+
         const { error } =
           await signUp(
             email,
@@ -58,7 +60,7 @@ const Login = () => {
           "Account created 🎉"
         );
 
-        // AUTO LOGOUT AFTER SIGNUP
+        // AUTO LOGOUT
         await supabase.auth.signOut();
 
         toast.success(
@@ -71,25 +73,46 @@ const Login = () => {
       }
 
       // LOGIN
-      const { error } =
-        await signIn(
-          email,
-          password
-        );
+      const {
+        data,
+        error,
+      } = await signIn(
+        email,
+        password
+      );
 
       if (error)
         throw error;
+
+      // EMAIL NOT VERIFIED
+      if (
+        !data.user?.email_confirmed_at
+      ) {
+
+        await supabase.auth.signOut();
+
+        toast.error(
+          "Please verify your email first ❤️"
+        );
+
+        setLoading(false);
+
+        return;
+      }
 
       toast.success(
         "Welcome back 🔥"
       );
 
       navigate("/");
+
     } catch (err: any) {
+
       toast.error(
         err.message ||
           "Something went wrong"
       );
+
     }
 
     setLoading(false);
@@ -97,9 +120,11 @@ const Login = () => {
 
   return (
     <div className="min-h-[80vh] grid place-items-center px-4 py-16 bg-gradient-soft">
+
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
+
           <Link
             to="/"
             className="font-display text-3xl font-semibold"
@@ -112,16 +137,21 @@ const Login = () => {
           </Link>
 
           <h1 className="font-display text-3xl font-semibold mt-6">
+
             {mode === "login"
               ? "Welcome back"
               : "Create account"}
+
           </h1>
 
           <p className="text-muted-foreground text-sm mt-2">
+
             {mode === "login"
               ? "Login to continue"
               : "Create your new account"}
+
           </p>
+
         </div>
 
         <form
@@ -130,7 +160,9 @@ const Login = () => {
         >
 
           {mode === "signup" && (
+
             <div>
+
               <Label htmlFor="name">
                 Name
               </Label>
@@ -146,10 +178,13 @@ const Login = () => {
                 required
                 className="mt-1.5 rounded-xl h-11"
               />
+
             </div>
+
           )}
 
           <div>
+
             <Label htmlFor="email">
               Email
             </Label>
@@ -167,9 +202,11 @@ const Login = () => {
               className="mt-1.5 rounded-xl h-11"
               placeholder="you@example.com"
             />
+
           </div>
 
           <div>
+
             <Label htmlFor="pw">
               Password
             </Label>
@@ -187,6 +224,7 @@ const Login = () => {
               className="mt-1.5 rounded-xl h-11"
               placeholder="••••••••"
             />
+
           </div>
 
           <Button
@@ -195,14 +233,17 @@ const Login = () => {
             disabled={loading}
             className="w-full rounded-full bg-gradient-primary hover:shadow-glow h-11"
           >
+
             {loading
               ? "Please wait..."
               : mode === "login"
               ? "Login"
               : "Create account"}
+
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
+
             {mode === "login"
               ? "New here? "
               : "Already have an account? "}
@@ -218,13 +259,19 @@ const Login = () => {
               }
               className="text-primary font-medium story-link"
             >
+
               {mode === "login"
                 ? "Sign up"
                 : "Login"}
+
             </button>
+
           </p>
+
         </form>
+
       </div>
+
     </div>
   );
 };

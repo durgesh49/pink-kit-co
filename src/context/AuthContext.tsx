@@ -36,47 +36,84 @@ export const AuthProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+
   const [user, setUser] =
     useState<any>(null);
 
   const [loading, setLoading] =
     useState(true);
 
+  // SESSION CHECK
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        setUser(data.session?.user ?? null);
-        setLoading(false);
-      });
 
+    const checkUser =
+      async () => {
+
+        const {
+          data: { session },
+        } =
+          await supabase.auth.getSession();
+
+        // ONLY VERIFIED USERS
+        if (
+          session?.user
+            ?.email_confirmed_at
+        ) {
+
+          setUser(session.user);
+
+        } else {
+
+          setUser(null);
+
+          await supabase.auth.signOut();
+
+        }
+
+        setLoading(false);
+      };
+
+    checkUser();
+
+    // LIVE AUTH CHANGES
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
+    } =
+      supabase.auth.onAuthStateChange(
+        async (
+          _event,
+          session
+        ) => {
+
+          if (
+            session?.user
+              ?.email_confirmed_at
+          ) {
+
+            setUser(
+              session.user
+            );
+
+          } else {
+
+            setUser(null);
+
+          }
+        }
+      );
 
     return () =>
       subscription.unsubscribe();
+
   }, []);
 
+  // SIGNUP
   const signUp = async (
     email: string,
     password: string
   ) => {
-    return await supabase.auth.signUp({
-      email,
-      password,
-    });
-  };
 
-  const signIn = async (
-    email: string,
-    password: string
-  ) => {
-    return await supabase.auth.signInWithPassword(
+    return await supabase.auth.signUp(
       {
         email,
         password,
@@ -84,10 +121,50 @@ export const AuthProvider = ({
     );
   };
 
-  const logout = async () => {
-    await supabase.auth.signOut();
+  // LOGIN
+  const signIn = async (
+    email: string,
+    password: string
+  ) => {
+
+    const response =
+      await supabase.auth.signInWithPassword(
+        {
+          email,
+          password,
+        }
+      );
+
+    // BLOCK UNVERIFIED USERS
+    if (
+      response.data.user &&
+      !response.data.user
+        .email_confirmed_at
+    ) {
+
+      await supabase.auth.signOut();
+
+      return {
+        data: null,
+        error: {
+          message:
+            "Please verify your email first ❤️",
+        },
+      };
+    }
+
+    return response;
   };
 
+  // LOGOUT
+  const logout = async () => {
+
+    await supabase.auth.signOut();
+
+    setUser(null);
+  };
+
+  // ADMIN
   const isAdmin =
     user?.email ===
     "durgexh11@gmail.com";

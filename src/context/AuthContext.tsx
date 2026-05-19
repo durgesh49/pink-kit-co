@@ -45,28 +45,55 @@ export const AuthProvider = ({
 
   useEffect(() => {
 
-    // GET SESSION
+    // CLEAR FAKE OLD SESSION
+    localStorage.removeItem(
+      "supabase.auth.token"
+    );
+
     supabase.auth
       .getSession()
       .then(({ data }) => {
 
-        setUser(
-          data.session?.user ?? null
-        );
+        // ONLY VERIFIED USER
+        if (
+          data.session?.user
+            ?.email_confirmed_at
+        ) {
+
+          setUser(
+            data.session.user
+          );
+
+        } else {
+
+          setUser(null);
+
+          supabase.auth.signOut();
+        }
 
         setLoading(false);
       });
 
-    // LISTEN AUTH CHANGES
     const {
       data: { subscription },
     } =
       supabase.auth.onAuthStateChange(
-        (_event, session) => {
+        async (_event, session) => {
 
-          setUser(
-            session?.user ?? null
-          );
+          // ONLY VERIFIED USER
+          if (
+            session?.user
+              ?.email_confirmed_at
+          ) {
+
+            setUser(session.user);
+
+          } else {
+
+            setUser(null);
+
+            await supabase.auth.signOut();
+          }
         }
       );
 
@@ -102,7 +129,7 @@ export const AuthProvider = ({
         }
       );
 
-    // INVALID LOGIN
+    // WRONG EMAIL/PASSWORD
     if (response.error) {
       return response;
     }
@@ -119,7 +146,7 @@ export const AuthProvider = ({
         data: null,
         error: {
           message:
-            "Please verify your email first ❤️",
+            "Verify your email first ❤️",
         },
       };
     }
@@ -135,7 +162,7 @@ export const AuthProvider = ({
     setUser(null);
   };
 
-  // ADMIN CHECK
+  // ADMIN
   const isAdmin =
     user?.email ===
     "durgexh11@gmail.com";

@@ -78,6 +78,7 @@ const Login = () => {
         email,
         password
       );
+      console.log(data);
 
       if (error)
         throw error;

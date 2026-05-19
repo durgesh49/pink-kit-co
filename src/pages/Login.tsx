@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
+
   const [mode, setMode] =
     useState<"login" | "signup">(
       "login"
@@ -38,6 +39,7 @@ const Login = () => {
   const submit = async (
     e: React.FormEvent
   ) => {
+
     e.preventDefault();
 
     setLoading(true);
@@ -47,24 +49,20 @@ const Login = () => {
       // SIGNUP
       if (mode === "signup") {
 
-        const { error } =
-          await signUp(
-            email,
-            password
-          );
+        const {
+          error,
+        } = await signUp(
+          email,
+          password
+        );
 
         if (error)
           throw error;
 
-        toast.success(
-          "Account created 🎉"
-        );
-
-        // AUTO LOGOUT
         await supabase.auth.signOut();
 
         toast.success(
-          "Please verify your email before login ❤️"
+          "Account created 🎉 Verify your email first."
         );
 
         setLoading(false);
@@ -84,9 +82,9 @@ const Login = () => {
       if (error)
         throw error;
 
-      // EMAIL NOT VERIFIED
       if (
-        !data.user?.email_confirmed_at
+        !data?.user
+          ?.email_confirmed_at
       ) {
 
         await supabase.auth.signOut();
@@ -160,7 +158,6 @@ const Login = () => {
         >
 
           {mode === "signup" && (
-
             <div>
 
               <Label htmlFor="name">
@@ -180,7 +177,6 @@ const Login = () => {
               />
 
             </div>
-
           )}
 
           <div>

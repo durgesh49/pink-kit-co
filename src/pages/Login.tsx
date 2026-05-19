@@ -14,7 +14,7 @@ const Login = () => {
 
   const [mode, setMode] =
     useState<"login" | "signup">(
-      "login"
+      "signup"
     );
 
   const [email, setEmail] =
@@ -62,7 +62,7 @@ const Login = () => {
         await supabase.auth.signOut();
 
         toast.success(
-          "Account created 🎉 Verify your email first."
+          "Account created 🎉 Please verify your email first."
         );
 
         setLoading(false);
@@ -78,7 +78,6 @@ const Login = () => {
         email,
         password
       );
-      console.log(data);
 
       if (error)
         throw error;

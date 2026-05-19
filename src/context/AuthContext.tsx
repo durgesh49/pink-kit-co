@@ -43,62 +43,30 @@ export const AuthProvider = ({
   const [loading, setLoading] =
     useState(true);
 
-  // SESSION CHECK
   useEffect(() => {
 
-    const checkUser =
-      async () => {
+    // GET SESSION
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
 
-        const {
-          data: { session },
-        } =
-          await supabase.auth.getSession();
-
-        // ONLY VERIFIED USERS
-        if (
-          session?.user
-            ?.email_confirmed_at
-        ) {
-
-          setUser(session.user);
-
-        } else {
-
-          setUser(null);
-
-          await supabase.auth.signOut();
-
-        }
+        setUser(
+          data.session?.user ?? null
+        );
 
         setLoading(false);
-      };
+      });
 
-    checkUser();
-
-    // LIVE AUTH CHANGES
+    // LISTEN AUTH CHANGES
     const {
       data: { subscription },
     } =
       supabase.auth.onAuthStateChange(
-        async (
-          _event,
-          session
-        ) => {
+        (_event, session) => {
 
-          if (
-            session?.user
-              ?.email_confirmed_at
-          ) {
-
-            setUser(
-              session.user
-            );
-
-          } else {
-
-            setUser(null);
-
-          }
+          setUser(
+            session?.user ?? null
+          );
         }
       );
 
@@ -113,12 +81,11 @@ export const AuthProvider = ({
     password: string
   ) => {
 
-    return await supabase.auth.signUp(
-      {
-        email,
-        password,
-      }
-    );
+    return await supabase.auth.signUp({
+      email,
+      password,
+    });
+
   };
 
   // LOGIN
@@ -135,11 +102,15 @@ export const AuthProvider = ({
         }
       );
 
-    // BLOCK UNVERIFIED USERS
+    // INVALID LOGIN
+    if (response.error) {
+      return response;
+    }
+
+    // EMAIL NOT VERIFIED
     if (
-      response.data.user &&
       !response.data.user
-        .email_confirmed_at
+        ?.email_confirmed_at
     ) {
 
       await supabase.auth.signOut();
@@ -164,7 +135,7 @@ export const AuthProvider = ({
     setUser(null);
   };
 
-  // ADMIN
+  // ADMIN CHECK
   const isAdmin =
     user?.email ===
     "durgexh11@gmail.com";

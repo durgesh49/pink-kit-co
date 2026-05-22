@@ -2,34 +2,50 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
-const Login = () => {
+const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
-
-    const result = await login(email, password);
-
-    if (result.success) {
-      navigate("/");
-    } else {
-      setError(result.error || "Login failed");
+    
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
     }
 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const result = await signup(email, password);
+      
+      if (result.success) {
+        alert("Signup successful! Please login.");
+        navigate("/login");
+      } else {
+        setError(result.error || "Signup failed. Try again.");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    }
+    
     setLoading(false);
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center">
+    <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -44,9 +60,10 @@ const Login = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
               required
               disabled={loading}
+              placeholder="your@email.com"
             />
           </div>
           
@@ -56,25 +73,26 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
               required
               disabled={loading}
+              placeholder="Min 6 characters"
             />
           </div>
           
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="w-full bg-primary text-white py-2 rounded hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
         
         <p className="mt-4 text-center text-gray-600">
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-600 hover:underline">
-            Signup
+          Already have an account?{" "}
+          <Link to="/login" className="text-primary hover:underline">
+            Login
           </Link>
         </p>
       </div>
@@ -82,4 +100,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

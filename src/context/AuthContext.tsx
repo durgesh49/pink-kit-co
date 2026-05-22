@@ -4,126 +4,139 @@ import {
   useEffect,
   useState,
 } from "react";
-
 import { supabase } from "@/supabase";
 
-interface AuthContextType {
-  user: any;
-  loading: boolean;
-
-  signUp: (
-    email: string,
-    password: string
-  ) => Promise<any>;
-
-  signIn: (
-    email: string,
-    password: string
-  ) => Promise<any>;
-
-  logout: () => Promise<void>;
-
-  isAdmin: boolean;
+interface User {
+  id: string;
+  email: string;
+  created_at: string;
 }
 
-const AuthContext =
-  createContext<AuthContextType>(
-    {} as AuthContextType
-  );
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  isAdmin: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+}
 
-export const AuthProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  const [user, setUser] =
-    useState<any>(null);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [loading, setLoading] =
-    useState(true);
-
+  // Check current user on load
   useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || "",
+          created_at: session.user.created_at || "",
+        });
+      }
+      setLoading(false);
+    };
 
-    supabase.auth
-      .getSession()
-      .then(({ data }) => {
-        setUser(data.session?.user ?? null);
-        setLoading(false);
-      });
+    checkUser();
 
-    const {
-      data: { subscription },
-    } =
-      supabase.auth.onAuthStateChange(
-        async (_event, session) => {
-          setUser(session?.user ?? null);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || "",
+            created_at: session.user.created_at || "",
+          });
+        } else {
+          setUser(null);
         }
-      );
+      }
+    );
 
-    return () =>
-      subscription.unsubscribe();
-
+    return () => subscription.unsubscribe();
   }, []);
 
-  // SIGNUP
-  const signUp = async (
-    email: string,
-    password: string
-  ) => {
+  // Login function
+  const login = async (email: string, password: string) => {
+    if (!email || !password) {
+      return { success: false, error: "Email and password are required" };
+    }
 
-    return await supabase.auth.signUp({
+    if (password.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters" };
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data.user) {
+      return { success: false, error: "Invalid credentials" };
+    }
+
+    return { success: true };
   };
 
-  // LOGIN - FIXED
-  const signIn = async (
-    email: string,
-    password: string
-  ) => {
+  // Signup function
+  // SIGNUP - Make sure this is correct
+const signup = async (email: string, password: string) => {
+  if (!email || !password) {
+    return { success: false, error: "Email and password are required" };
+  }
 
-    const response =
-      await supabase.auth.signInWithPassword(
-        {
-          email,
-          password,
-        }
-      );
+  if (password.length < 6) {
+    return { success: false, error: "Password must be at least 6 characters" };
+  }
 
-    return response;
-  };
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-  // LOGOUT
+  if (error) {
+    console.log("Signup error:", error.message);
+    return { success: false, error: error.message };
+  }
+
+  if (!data.user) {
+    return { success: false, error: "Signup failed" };
+  }
+
+  console.log("Signup success:", data.user.email);
+  return { success: true };
+};
+
+  // Logout function
   const logout = async () => {
-
     await supabase.auth.signOut();
-
     setUser(null);
   };
 
-  // ADMIN
-  const isAdmin =
-    user?.email ===
-    "durgexh11@gmail.com";
+  // Check if admin
+  const isAdmin = user?.email === "durgexh11@gmail.com";
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signUp,
-        signIn,
-        logout,
-        isAdmin,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, isAdmin, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () =>
-  useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+  return context;
+};

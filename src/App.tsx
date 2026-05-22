@@ -14,6 +14,7 @@ import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import Checkout from "./pages/Checkout";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";  // ← YEH LINE ADD KARO
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +61,12 @@ const App = () => {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        {/* ← YEH ROUTE ADD KARO */}
+        <Route
+          path="/signup"
+          element={<Signup />}
         />
 
         <Route

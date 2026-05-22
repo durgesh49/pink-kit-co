@@ -45,32 +45,10 @@ export const AuthProvider = ({
 
   useEffect(() => {
 
-    // CLEAR FAKE OLD SESSION
-    localStorage.removeItem(
-      "supabase.auth.token"
-    );
-
     supabase.auth
       .getSession()
       .then(({ data }) => {
-
-        // ONLY VERIFIED USER
-        if (
-          data.session?.user
-            ?.email_confirmed_at
-        ) {
-
-          setUser(
-            data.session.user
-          );
-
-        } else {
-
-          setUser(null);
-
-          supabase.auth.signOut();
-        }
-
+        setUser(data.session?.user ?? null);
         setLoading(false);
       });
 
@@ -79,21 +57,7 @@ export const AuthProvider = ({
     } =
       supabase.auth.onAuthStateChange(
         async (_event, session) => {
-
-          // ONLY VERIFIED USER
-          if (
-            session?.user
-              ?.email_confirmed_at
-          ) {
-
-            setUser(session.user);
-
-          } else {
-
-            setUser(null);
-
-            await supabase.auth.signOut();
-          }
+          setUser(session?.user ?? null);
         }
       );
 
@@ -115,7 +79,7 @@ export const AuthProvider = ({
 
   };
 
-  // LOGIN
+  // LOGIN - FIXED
   const signIn = async (
     email: string,
     password: string
@@ -128,28 +92,6 @@ export const AuthProvider = ({
           password,
         }
       );
-
-    // WRONG EMAIL/PASSWORD
-    if (response.error) {
-      return response;
-    }
-
-    // EMAIL NOT VERIFIED
-    if (
-      !response.data.user
-        ?.email_confirmed_at
-    ) {
-
-      await supabase.auth.signOut();
-
-      return {
-        data: null,
-        error: {
-          message:
-            "Verify your email first ❤️",
-        },
-      };
-    }
 
     return response;
   };

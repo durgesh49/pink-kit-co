@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import { useAuth } from "./context/AuthContext";
 
 const App = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user, loading } = useAuth();
 
   return (
     <>
@@ -65,11 +65,11 @@ const App = () => {
         <Route
           path="/admin"
           element={
-            isAdmin ? (
+            loading ? null : (user && isAdmin ? (
               <Admin />
             ) : (
               <Navigate to="/" />
-            )
+            ))
           }
         />
 

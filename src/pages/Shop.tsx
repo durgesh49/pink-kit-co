@@ -65,6 +65,12 @@ const Shop = () => {
     fetchProducts();
   }, []);
 
+  // 🔴 FIX: Jab URL change ho toh team update karo
+  useEffect(() => {
+    const teamFromUrl = params.get("team");
+    setTeam(teamFromUrl || null);
+  }, [params]);
+
   // UNIQUE TEAMS
   const teams = [
     ...new Set(
@@ -74,44 +80,24 @@ const Shop = () => {
     ),
   ];
 
-  // FILTER PRODUCTS
+  // FILTER PRODUCTS (Case insensitive)
   const filtered = useMemo(() => {
-    return products.filter(
-      (p) => {
-        const matchesTeam =
-          !team ||
-          p.team === team;
+    return products.filter((p) => {
+      const matchesTeam = !team || p.team?.toLowerCase() === team?.toLowerCase();
+      const matchesPrice = p.price >= price[0] && p.price <= price[1];
+      const matchesSearch =
+        !searchQuery ||
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.team.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesPrice =
-          p.price >= price[0] &&
-          p.price <= price[1];
-
-        const matchesSearch =
-          !searchQuery ||
-          p.name
-            .toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            ) ||
-          p.team
-            .toLowerCase()
-            .includes(
-              searchQuery.toLowerCase()
-            );
-
-        return (
-          matchesTeam &&
-          matchesPrice &&
-          matchesSearch
-        );
+      let matchesSize = true;
+      if (size) {
+        matchesSize = p.sizes ? p.sizes.includes(size) : true;
       }
-    );
-  }, [
-    products,
-    team,
-    price,
-    searchQuery,
-  ]);
+
+      return matchesTeam && matchesPrice && matchesSearch && matchesSize;
+    });
+  }, [products, team, price, searchQuery, size]);
 
   // TEAM FILTER
   const setTeamFilter = (
@@ -200,8 +186,8 @@ const Shop = () => {
                     }
                     className={cn(
                       "text-xs px-3 py-1.5 rounded-full transition-smooth",
-                      team ===
-                        t
+                      // 🔴 YEH EK LINE CHANGE HUI HAI (case-insensitive compare)
+                      team?.toLowerCase() === t?.toLowerCase()
                         ? "bg-primary text-primary-foreground"
                         : "bg-secondary hover:bg-accent"
                     )}

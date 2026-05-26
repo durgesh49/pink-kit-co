@@ -13,14 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { reviews } from "@/data/products";
-
 import heroImg from "@/assets/hero-jersey.jpg";
-
 import { supabase } from "../supabase";
 
 const Index = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,9 +27,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("products")
         .select("*")
-        .order("created_at", {
-          ascending: false,
-        });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Supabase error:", error);
@@ -49,45 +44,18 @@ const Index = () => {
     }
   };
 
-  // FETCH TEAMS with show_on_homepage flag
-  const fetchTeams = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("*")
-        .order("name", {
-          ascending: true,
-        });
-
-      if (error) {
-        console.error("Teams fetch error:", error);
-        return;
-      }
-
-      if (data) {
-        setTeams(data);
-      }
-    } catch (err: any) {
-      console.error("Teams network error:", err);
-    }
-  };
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       setError(null);
-      await Promise.all([fetchProducts(), fetchTeams()]);
+      await fetchProducts();
       setLoading(false);
     };
     loadData();
   }, []);
 
-  // FILTERS
   const trending = products.filter((p) => p.trending);
   const all = products.slice(0, 12);
-
-  // Only show teams that are marked for homepage
-  const homepageTeams = teams.filter((team) => team.show_on_homepage === true);
 
   if (loading) {
     return (
@@ -122,7 +90,6 @@ const Index = () => {
       {/* HERO */}
       <section className="relative overflow-hidden bg-gradient-hero">
         <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-primary/20 blur-3xl animate-float" />
-
         <div className="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-primary-glow/30 blur-3xl" />
 
         <div className="container-tight relative grid md:grid-cols-2 gap-10 items-center py-16 md:py-24">
@@ -131,20 +98,14 @@ const Index = () => {
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               New Season Drop · 2024/25
             </span>
-
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-semibold leading-[0.95] mt-5">
               Latest <br />
               Football{" "}
-              <em className="text-primary not-italic">
-                Drip
-              </em>
-              .
+              <em className="text-primary not-italic">Drip</em>.
             </h1>
-
             <p className="mt-5 text-lg text-muted-foreground max-w-md leading-relaxed">
               Premium jerseys from your favourite clubs.
             </p>
-
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
                 asChild
@@ -156,14 +117,11 @@ const Index = () => {
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
-
               <button
                 onClick={() => {
                   document
                     .getElementById("trending")
-                    ?.scrollIntoView({
-                      behavior: "smooth",
-                    });
+                    ?.scrollIntoView({ behavior: "smooth" });
                 }}
                 className="rounded-full h-12 px-8 text-base bg-card/60 border border-border hover:bg-secondary transition-smooth"
               >
@@ -174,7 +132,6 @@ const Index = () => {
 
           <div className="relative animate-scale-in">
             <div className="absolute inset-4 bg-gradient-primary rounded-[3rem] blur-2xl opacity-40" />
-
             <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-glow">
               <img
                 src={heroImg}
@@ -191,15 +148,12 @@ const Index = () => {
         <section id="trending" className="container-tight py-20">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <span className="text-primary text-sm font-medium">
-                Trending now
-              </span>
+              <span className="text-primary text-sm font-medium">Trending now</span>
               <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">
                 This week's hottest drip
               </h2>
             </div>
           </div>
-
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
             {trending.map((p) => (
               <ProductCard key={p.id} product={p} />
@@ -208,60 +162,12 @@ const Index = () => {
         </section>
       )}
 
-      {/* TEAMS - Only shows teams with show_on_homepage = true */}
-      <section className="bg-gradient-soft py-20">
-        <div className="container-tight">
-          <div className="text-center mb-12">
-            <span className="text-primary text-sm font-medium">
-              Shop by team
-            </span>
-            <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">
-              Pick your colours
-            </h2>
-          </div>
-
-          {homepageTeams.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-              {homepageTeams.map((team) => (
-                <Link
-                  key={team.id}
-                  to={`/shop?team=${encodeURIComponent(team.name)}`}
-                  className="group bg-card rounded-3xl p-6 text-center shadow-card hover-lift cursor-pointer transition-all hover:bg-primary/5"
-                >
-                  <div className="text-4xl mb-3 transform transition-transform group-hover:scale-110">
-                    ⚽
-                  </div>
-                  <div className="font-medium text-sm group-hover:text-primary transition-colors">
-                    {team.name}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 bg-yellow-50 rounded-2xl">
-              <p className="text-yellow-800">
-                ⚠️ No teams selected for homepage.
-                <Link to="/admin" className="text-primary font-semibold ml-2 underline">
-                  Go to Admin Panel →
-                </Link>
-                <br />
-                <span className="text-sm">Go to Teams tab and click the 👁️ icon to show teams on homepage.</span>
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* ALL PRODUCTS */}
       <section className="container-tight py-20">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <span className="text-primary text-sm font-medium">
-              Fresh drops
-            </span>
-            <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">
-              All jerseys
-            </h2>
+            <span className="text-primary text-sm font-medium">Fresh drops</span>
+            <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">All jerseys</h2>
           </div>
         </div>
 
@@ -273,12 +179,7 @@ const Index = () => {
               ))}
             </div>
             <div className="text-center mt-12">
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="rounded-full h-12 px-8"
-              >
+              <Button asChild size="lg" variant="outline" className="rounded-full h-12 px-8">
                 <Link to="/shop">
                   See full collection
                   <ArrowRight className="ml-1 h-4 w-4" />
@@ -297,14 +198,9 @@ const Index = () => {
       <section className="bg-gradient-soft py-20">
         <div className="container-tight">
           <div className="text-center mb-12">
-            <span className="text-primary text-sm font-medium">
-              Loved by 12k+
-            </span>
-            <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">
-              Real reviews, real drip
-            </h2>
+            <span className="text-primary text-sm font-medium">Loved by 12k+</span>
+            <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">Real reviews, real drip</h2>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {reviews.map((r, i) => (
               <div key={i} className="bg-card rounded-3xl p-6 shadow-card">
@@ -325,21 +221,9 @@ const Index = () => {
       <section className="container-tight py-20">
         <div className="grid md:grid-cols-3 gap-5">
           {[
-            {
-              icon: Truck,
-              title: "3–5 day delivery",
-              text: "Fast nationwide shipping",
-            },
-            {
-              icon: RotateCcw,
-              title: "Easy returns",
-              text: "Free 7-day returns",
-            },
-            {
-              icon: ShieldCheck,
-              title: "Secure payment",
-              text: "100% encrypted checkout",
-            },
+            { icon: Truck, title: "3–5 day delivery", text: "Fast nationwide shipping" },
+            { icon: RotateCcw, title: "Easy returns", text: "Free 7-day returns" },
+            { icon: ShieldCheck, title: "Secure payment", text: "100% encrypted checkout" },
           ].map((b) => (
             <div key={b.title} className="bg-card rounded-3xl p-8 shadow-card">
               <div className="bg-blush w-14 h-14 rounded-2xl flex items-center justify-center mb-4">

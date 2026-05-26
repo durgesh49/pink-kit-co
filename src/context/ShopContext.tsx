@@ -108,7 +108,7 @@ export const ShopProvider = ({
 
     if (!user) {
       alert(
-        "Please login first ❤️"
+        "Please login first "
       );
 
       return;
@@ -183,7 +183,7 @@ export const ShopProvider = ({
 
     if (!user) {
       alert(
-        "Please login first ❤️"
+        "Please login first "
       );
 
       return;

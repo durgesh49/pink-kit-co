@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 const Cart = () => {
   const { cart, updateQty, removeFromCart, cartTotal } = useShop();
 
+  // Helper function to get display image with fallback
+  const getDisplayImage = (product) => {
+    return product.image_front || product.image || '/placeholder-image.jpg';
+  };
+
   if (cart.length === 0) {
     return (
       <div className="container-tight py-24 text-center">
@@ -32,7 +37,15 @@ const Cart = () => {
             <div key={item.product.id + item.size} className="bg-card rounded-3xl p-4 sm:p-5 shadow-card flex gap-4">
               <Link to={`/product/${item.product.id}`} className="shrink-0">
                 <div className="w-24 h-28 sm:w-28 sm:h-32 rounded-2xl overflow-hidden bg-blush">
-                  <img src={item.product.image} alt={item.product.name} className="h-full w-full object-cover" />
+                  <img 
+                    src={getDisplayImage(item.product)} 
+                    alt={item.product.name} 
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder-image.jpg';
+                    }}
+                  />
                 </div>
               </Link>
               <div className="flex-1 flex flex-col">

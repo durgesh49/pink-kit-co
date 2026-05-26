@@ -10,6 +10,11 @@ const Checkout = () => {
 
   const shipping = cartTotal > 1500 ? 0 : 99;
 
+  // Helper function to get display image with fallback
+  const getDisplayImage = (product) => {
+    return product.image_front || product.image || '/placeholder-image.jpg';
+  };
+
   if (cart.length === 0) {
     return (
       <div className="container-tight py-24 text-center">
@@ -222,9 +227,13 @@ ${products}
               >
                 <div className="w-14 h-16 rounded-xl bg-blush overflow-hidden shrink-0">
                   <img
-                    src={i.product.image}
+                    src={getDisplayImage(i.product)}
                     alt=""
                     className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder-image.jpg';
+                    }}
                   />
                 </div>
 

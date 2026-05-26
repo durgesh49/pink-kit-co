@@ -12,13 +12,23 @@ const sizes = ["S", "M", "L", "XL"];
 
 const Product = () => {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<any>(null);
+  const [activeImage, setActiveImage] = useState("front");
   const [related, setRelated] = useState([]);
   const [size, setSize] = useState("M");
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const { addToCart, wishlist, toggleWishlist } = useShop();
   const navigate = useNavigate();
+
+  // Helper function to get display image with fallback
+  const getDisplayImage = (product: any, view: string) => {
+    if (view === "front") {
+      return product.image_front || product.image || '/placeholder-image.jpg';
+    } else {
+      return product.image_back || product.image_front || product.image || '/placeholder-image.jpg';
+    }
+  };
 
   // Fetch product from Supabase
   useEffect(() => {
@@ -58,7 +68,6 @@ const Product = () => {
   }
 
   const liked = wishlist.includes(product.id);
-  // const related = products.filter((p) => p.team === product.team && p.id !== product.id).slice(0, 4);
 
   const handleAdd = () => {
     for (let i = 0; i < qty; i++) addToCart(product, size);
@@ -66,15 +75,71 @@ const Product = () => {
   };
   const handleBuy = () => { handleAdd(); navigate("/cart"); };
 
+  const hasBackImage = product.image_back || (!product.image_front && product.image);
+
   return (
     <div className="container-tight py-10 md:py-16">
       <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
         <div className="relative">
-          <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-blush shadow-card">
-            <img src={product.image} alt={product.name} width={800} height={1000} className="h-full w-full object-cover" />
+          <div className="space-y-4">
+            <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-blush shadow-card">
+              <img
+                src={getDisplayImage(product, activeImage)}
+                alt={product.name}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder-image.jpg';
+                }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => setActiveImage("front")}
+                className={`border rounded-2xl overflow-hidden transition-all ${
+                  activeImage === "front"
+                    ? "border-pink-500 border-2 shadow-md"
+                    : "border-gray-200 hover:border-pink-300"
+                }`}
+              >
+                <img
+                  src={getDisplayImage(product, "front")}
+                  alt="Front view"
+                  className="w-full h-32 object-cover"
+                />
+                <p className="text-xs text-center py-1 bg-white">Front</p>
+              </button>
+
+              <button
+                onClick={() => setActiveImage("back")}
+                className={`border rounded-2xl overflow-hidden transition-all ${
+                  activeImage === "back"
+                    ? "border-pink-500 border-2 shadow-md"
+                    : "border-gray-200 hover:border-pink-300"
+                }`}
+              >
+                <img
+                  src={getDisplayImage(product, "back")}
+                  alt="Back view"
+                  className="w-full h-32 object-cover"
+                />
+                <p className="text-xs text-center py-1 bg-white">
+                  Back
+                  {!product.image_back && product.image_front && (
+                    <span className="text-gray-400 ml-1">(mirror)</span>
+                  )}
+                </p>
+              </button>
+            </div>
           </div>
           {product.badge && (
             <span className="absolute top-4 left-4 bg-card text-foreground text-xs font-semibold px-3 py-1.5 rounded-full shadow-card">{product.badge}</span>
+          )}
+          {!product.image_front && product.image && (
+            <span className="absolute bottom-4 left-4 bg-yellow-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-card">
+              Classic Edition
+            </span>
           )}
         </div>
 

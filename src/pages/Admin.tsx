@@ -49,8 +49,9 @@ const Admin = () => {
     off: "",
   });
 
-  // IMAGE
-  const [imageFile, setImageFile] = useState(null);
+  // IMAGES - Changed to support two images
+  const [frontImageFile, setFrontImageFile] = useState(null);
+  const [backImageFile, setBackImageFile] = useState(null);
 
   // FETCH PRODUCTS
   const fetchProducts = async () => {
@@ -71,7 +72,7 @@ const Admin = () => {
     const { data, error } = await supabase
       .from("teams")
       .select("*")
-      .order("created_at", {
+      .order("name", {
         ascending: true,
       });
 
@@ -85,40 +86,60 @@ const Admin = () => {
     fetchTeams();
   }, []);
 
-  // ADD PRODUCT
+  // ADD PRODUCT - Updated for dual images
   const addProduct = async () => {
     try {
       if (
         !newProduct.name ||
         !newProduct.team ||
         !newProduct.price ||
-        !imageFile
+        !frontImageFile
       ) {
-        alert("Fill all fields");
+        alert("Fill all fields (Front image is required)");
         return;
       }
 
-      const fileName = `${Date.now()}-${imageFile.name}`;
+      let frontImageUrl = null;
+      let backImageUrl = null;
 
-      // UPLOAD IMAGE
-      const { error: uploadError } = await supabase.storage
+      // Upload Front Image
+      const frontFileName = `front-${Date.now()}-${frontImageFile.name}`;
+      const { error: frontUploadError } = await supabase.storage
         .from("products")
-        .upload(fileName, imageFile);
+        .upload(frontFileName, frontImageFile);
 
-      if (uploadError) {
-        console.log(uploadError);
-        alert("Image upload failed");
+      if (frontUploadError) {
+        console.log(frontUploadError);
+        alert("Front image upload failed");
         return;
       }
 
-      // GET URL
       const {
-        data: { publicUrl },
+        data: { publicUrl: frontPublicUrl },
       } = supabase.storage
         .from("products")
-        .getPublicUrl(fileName);
+        .getPublicUrl(frontFileName);
+      
+      frontImageUrl = frontPublicUrl;
 
-      // SAVE PRODUCT
+      // Upload Back Image (if provided)
+      if (backImageFile) {
+        const backFileName = `back-${Date.now()}-${backImageFile.name}`;
+        const { error: backUploadError } = await supabase.storage
+          .from("products")
+          .upload(backFileName, backImageFile);
+
+        if (!backUploadError) {
+          const {
+            data: { publicUrl: backPublicUrl },
+          } = supabase.storage
+            .from("products")
+            .getPublicUrl(backFileName);
+          backImageUrl = backPublicUrl;
+        }
+      }
+
+      // SAVE PRODUCT with both images
       const { error: insertError } = await supabase
         .from("products")
         .insert([
@@ -126,7 +147,9 @@ const Admin = () => {
             name: newProduct.name,
             team: newProduct.team,
             price: Number(newProduct.price),
-            image: publicUrl,
+            image_front: frontImageUrl,
+            image_back: backImageUrl,
+            image: frontImageUrl,
             trending: false,
           },
         ]);
@@ -147,7 +170,7 @@ const Admin = () => {
       if (!exists && newProduct.team.trim() !== "") {
         await supabase
           .from("teams")
-          .insert([{ name: newProduct.team }]);
+          .insert([{ name: newProduct.team, show_on_homepage: false }]);
 
         fetchTeams();
       }
@@ -160,7 +183,8 @@ const Admin = () => {
         price: "",
       });
 
-      setImageFile(null);
+      setFrontImageFile(null);
+      setBackImageFile(null);
       setShowNewTeamInput(false);
     } catch (err) {
       console.log(err);
@@ -193,29 +217,38 @@ const Admin = () => {
   // EDIT PRODUCT
   const updateProduct = async (product) => {
     const newName = prompt("Edit product name", product.name);
-
     if (!newName) return;
 
     const newTeam = prompt("Edit team", product.team);
-
     if (!newTeam) return;
 
     const newPrice = prompt("Edit price", product.price);
-
     if (!newPrice) return;
 
-    const newImage = prompt("Edit image URL", product.image);
+    const newFrontImage = prompt("Edit front image URL (or leave empty to keep current)", product.image_front || "");
+    if (newFrontImage === null) return;
+    
+    const newBackImage = prompt("Edit back image URL (or leave empty to keep current)", product.image_back || "");
+    if (newBackImage === null) return;
 
-    if (!newImage) return;
+    const updateData = {
+      name: newName,
+      team: newTeam,
+      price: Number(newPrice),
+    };
+
+    if (newFrontImage.trim()) {
+      updateData.image_front = newFrontImage;
+      updateData.image = newFrontImage;
+    }
+    
+    if (newBackImage.trim()) {
+      updateData.image_back = newBackImage;
+    }
 
     await supabase
       .from("products")
-      .update({
-        name: newName,
-        team: newTeam,
-        price: Number(newPrice),
-        image: newImage,
-      })
+      .update(updateData)
       .eq("id", product.id);
 
     fetchProducts();
@@ -227,7 +260,7 @@ const Admin = () => {
 
     await supabase
       .from("teams")
-      .insert([{ name: newTeam }]);
+      .insert([{ name: newTeam, show_on_homepage: false }]);
 
     fetchTeams();
     setNewTeam("");
@@ -255,6 +288,21 @@ const Admin = () => {
       .eq("id", id);
 
     fetchTeams();
+  };
+
+  // TOGGLE TEAM ON HOMEPAGE
+  const toggleTeamOnHomepage = async (team) => {
+    const newValue = !team.show_on_homepage;
+    const { error } = await supabase
+      .from("teams")
+      .update({ show_on_homepage: newValue })
+      .eq("id", team.id);
+    
+    if (!error) {
+      fetchTeams();
+    } else {
+      alert("Error updating team visibility");
+    }
   };
 
   // ADD COUPON
@@ -304,6 +352,11 @@ const Admin = () => {
     setCoupons(
       coupons.filter((c) => c.id !== id)
     );
+  };
+
+  // Helper function to get display image for product list
+  const getDisplayImage = (product) => {
+    return product.image_front || product.image || '/placeholder-image.jpg';
   };
 
   return (
@@ -436,33 +489,51 @@ const Admin = () => {
                 }
               />
 
+              {/* Front Image Upload */}
               <label className="border-2 border-dashed border-pink-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-pink-50 hover:bg-pink-100 transition">
                 <Upload className="text-pink-500 mb-2" />
-
                 <p className="font-medium text-pink-500">
-                  Click to upload image
+                  Click to upload FRONT image (Required)
                 </p>
-
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
                   onChange={(e) => {
-                    if (
-                      e.target.files &&
-                      e.target.files[0]
-                    ) {
-                      setImageFile(
-                        e.target.files[0]
-                      );
+                    if (e.target.files && e.target.files[0]) {
+                      setFrontImageFile(e.target.files[0]);
                     }
                   }}
                 />
               </label>
 
-              {imageFile && (
+              {frontImageFile && (
                 <p className="text-sm text-green-600">
-                  {imageFile.name}
+                  ✓ Front image: {frontImageFile.name}
+                </p>
+              )}
+
+              {/* Back Image Upload */}
+              <label className="border-2 border-dashed border-pink-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-pink-50 hover:bg-pink-100 transition">
+                <Upload className="text-pink-500 mb-2" />
+                <p className="font-medium text-pink-500">
+                  Click to upload BACK image (Optional)
+                </p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setBackImageFile(e.target.files[0]);
+                    }
+                  }}
+                />
+              </label>
+
+              {backImageFile && (
+                <p className="text-sm text-green-600">
+                  ✓ Back image: {backImageFile.name}
                 </p>
               )}
 
@@ -483,9 +554,12 @@ const Admin = () => {
               >
                 <div className="flex items-center gap-4">
                   <img
-                    src={p.image}
+                    src={getDisplayImage(p)}
                     alt={p.name}
                     className="w-20 h-20 object-cover rounded-xl"
+                    onError={(e) => {
+                      e.target.src = '/placeholder-image.jpg';
+                    }}
                   />
 
                   <div>
@@ -500,6 +574,12 @@ const Admin = () => {
                     <p className="font-bold">
                       ₹{p.price}
                     </p>
+                    {p.image_back && (
+                      <p className="text-xs text-green-600">✓ Dual images</p>
+                    )}
+                    {!p.image_front && p.image && (
+                      <p className="text-xs text-yellow-600">Legacy product</p>
+                    )}
                   </div>
                 </div>
 
@@ -531,26 +611,30 @@ const Admin = () => {
         </div>
       )}
 
-      {/* TEAMS */}
+      {/* TEAMS - UPDATED WITH EYE ICON */}
       {tab === "teams" && (
         <div className="bg-white p-6 rounded-3xl shadow">
-          <h2 className="text-2xl font-semibold mb-4">
-            Teams
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">
+              Teams Management
+            </h2>
+            <p className="text-xs text-gray-500">
+              👁️ Click eye icon to show/hide team on homepage
+            </p>
+          </div>
 
           <div className="flex gap-3 mb-5">
             <input
               className="border p-3 rounded-xl flex-1"
-              placeholder="Add team"
+              placeholder="Add new team"
               value={newTeam}
               onChange={(e) => setNewTeam(e.target.value)}
             />
-
             <button
               onClick={addTeam}
               className="bg-pink-500 text-white px-5 rounded-xl"
             >
-              Add
+              Add Team
             </button>
           </div>
 
@@ -560,19 +644,39 @@ const Admin = () => {
                 key={team.id}
                 className="p-4 rounded-2xl bg-pink-50 flex justify-between items-center"
               >
-                <p>{team.name}</p>
+                <div className="flex-1">
+                  <p className="font-semibold">{team.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {team.show_on_homepage ? '✅ Visible on homepage' : '❌ Hidden from homepage'}
+                  </p>
+                </div>
 
                 <div className="flex gap-2">
+                  {/* Eye Toggle Button */}
+                  <button
+                    onClick={() => toggleTeamOnHomepage(team)}
+                    className={`p-2 rounded-full transition ${
+                      team.show_on_homepage 
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200' 
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    }`}
+                    title={team.show_on_homepage ? "Hide from homepage" : "Show on homepage"}
+                  >
+                    {team.show_on_homepage ? '👁️' : '👁️‍🗨️'}
+                  </button>
+
                   <button
                     onClick={() => editTeam(team)}
-                    className="p-2 rounded-full bg-blue-100 text-blue-500"
+                    className="p-2 rounded-full bg-blue-100 text-blue-500 hover:bg-blue-200"
+                    title="Edit team name"
                   >
                     <Edit size={16} />
                   </button>
 
                   <button
                     onClick={() => deleteTeam(team.id)}
-                    className="p-2 rounded-full bg-red-100 text-red-500"
+                    className="p-2 rounded-full bg-red-100 text-red-500 hover:bg-red-200"
+                    title="Delete team"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -580,6 +684,12 @@ const Admin = () => {
               </div>
             ))}
           </div>
+
+          {teams.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No teams added yet. Add your first team above!
+            </div>
+          )}
         </div>
       )}
 

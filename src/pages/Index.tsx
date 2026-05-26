@@ -104,7 +104,7 @@ const Index = () => {
               <em className="text-primary not-italic">Drip</em>.
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-md leading-relaxed">
-              Premium jerseys from your favourite clubs.
+              Premium jerseys from your favourite clubss.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button

@@ -8,6 +8,7 @@ import {
   Ticket,
   Users,
   Package,
+  Star,
 } from "lucide-react";
 
 import { supabase } from "../supabase";
@@ -151,6 +152,7 @@ const Admin = () => {
             image_back: backImageUrl,
             image: frontImageUrl,
             trending: false,
+            premium: false,
           },
         ]);
 
@@ -202,12 +204,24 @@ const Admin = () => {
     fetchProducts();
   };
 
-  // TRENDING
+  // TRENDING TOGGLE
   const toggleTrend = async (id, current) => {
     await supabase
       .from("products")
       .update({
         trending: !current,
+      })
+      .eq("id", id);
+
+    fetchProducts();
+  };
+
+  // PREMIUM TOGGLE (NEW)
+  const togglePremium = async (id, current) => {
+    await supabase
+      .from("products")
+      .update({
+        premium: !current,
       })
       .eq("id", id);
 
@@ -580,15 +594,37 @@ const Admin = () => {
                     {!p.image_front && p.image && (
                       <p className="text-xs text-yellow-600">Legacy product</p>
                     )}
+                    {p.premium && (
+                      <p className="text-xs text-amber-600">⭐ Premium</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex gap-2">
+                  {/* Trending Button */}
                   <button
                     onClick={() => toggleTrend(p.id, p.trending)}
-                    className="p-3 rounded-full bg-pink-100 text-pink-500"
+                    className={`p-3 rounded-full transition ${
+                      p.trending 
+                        ? "bg-pink-500 text-white" 
+                        : "bg-pink-100 text-pink-500"
+                    }`}
+                    title={p.trending ? "Remove from trending" : "Add to trending"}
                   >
                     <Sparkles size={18} />
+                  </button>
+
+                  {/* Premium Button - NEW */}
+                  <button
+                    onClick={() => togglePremium(p.id, p.premium)}
+                    className={`p-3 rounded-full transition ${
+                      p.premium 
+                        ? "bg-amber-500 text-white" 
+                        : "bg-amber-100 text-amber-500"
+                    }`}
+                    title={p.premium ? "Remove from premium" : "Add to premium"}
+                  >
+                    <Star size={18} />
                   </button>
 
                   <button
@@ -611,7 +647,7 @@ const Admin = () => {
         </div>
       )}
 
-      {/* TEAMS - UPDATED WITH EYE ICON */}
+      {/* TEAMS */}
       {tab === "teams" && (
         <div className="bg-white p-6 rounded-3xl shadow">
           <div className="flex justify-between items-center mb-4">
@@ -652,7 +688,6 @@ const Admin = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  {/* Eye Toggle Button */}
                   <button
                     onClick={() => toggleTeamOnHomepage(team)}
                     className={`p-2 rounded-full transition ${

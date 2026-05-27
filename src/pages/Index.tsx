@@ -54,7 +54,8 @@ const Index = () => {
     loadData();
   }, []);
 
-  const trending = products.filter((p) => p.trending);
+  const trending = products.filter((p) => p.trending === true);
+  const premium = products.filter((p) => p.premium === true);
   const all = products.slice(0, 12);
 
   if (loading) {
@@ -104,7 +105,7 @@ const Index = () => {
               <em className="text-primary not-italic">Drip</em>.
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-md leading-relaxed">
-              Premium jerseys from your favourite clubss.
+              Premium jerseys from your favourite clubs.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button
@@ -156,6 +157,25 @@ const Index = () => {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
             {trending.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* PREMIUM */}
+      {premium.length > 0 && (
+        <section id="premium" className="container-tight py-20 bg-gradient-soft">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <span className="text-primary text-sm font-medium">Premium collection</span>
+              <h2 className="font-display text-4xl md:text-5xl font-semibold mt-2">
+                Elite quality jerseys
+              </h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+            {premium.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

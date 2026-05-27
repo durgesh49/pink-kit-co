@@ -104,85 +104,57 @@
   }
 }
 
-@media (min-width: 640px) {
-  .container-tight {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .container-tight {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
 /* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
+.animate-scale-in { animation: scaleIn 0.4s ease-out; }
+.animate-float { animation: float 6s ease-in-out infinite; }
 
-.animate-scale-in {
-  animation: scaleIn 0.4s ease-out;
-}
+/* ========== MOBILE RESPONSIVE - PHONE PERFECT ========== */
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* ========== MOBILE RESPONSIVE ========== */
-@media (max-width: 768px) {
+/* Mobile Phones (up to 640px) */
+@media (max-width: 640px) {
+  /* Container */
   .container-tight {
     padding-left: 12px !important;
     padding-right: 12px !important;
   }
   
+  /* Product Grid - 2 columns */
   .grid-cols-2 {
-    gap: 8px !important;
+    gap: 10px !important;
+  }
+  
+  /* Product Card */
+  .product-card {
+    border-radius: 12px !important;
   }
   
   .product-card .product-image {
-    height: 160px !important;
+    height: 150px !important;
   }
   
   .product-info {
-    padding: 6px !important;
+    padding: 8px !important;
   }
   
   .product-name {
     font-size: 11px !important;
+    font-weight: 600 !important;
   }
   
   .product-club {
@@ -191,20 +163,30 @@
   
   .product-price {
     font-size: 12px !important;
+    font-weight: 700 !important;
   }
   
+  /* Buttons */
   .add-to-cart {
-    padding: 4px 8px !important;
+    padding: 5px 8px !important;
     font-size: 10px !important;
+    border-radius: 20px !important;
   }
   
+  /* Section Padding */
   .py-20 {
     padding-top: 32px !important;
     padding-bottom: 32px !important;
   }
   
+  .py-16 {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+  
+  /* Headings */
   .text-4xl {
-    font-size: 24px !important;
+    font-size: 22px !important;
   }
   
   .text-5xl {
@@ -215,55 +197,225 @@
     font-size: 28px !important;
   }
   
+  h1, .text-3xl {
+    font-size: 24px !important;
+  }
+  
+  h2 {
+    font-size: 20px !important;
+  }
+  
+  /* Hero Section */
+  .gap-10 {
+    gap: 20px !important;
+  }
+  
+  .hero-section {
+    padding: 16px 0 !important;
+  }
+  
+  /* Buttons Height */
   .h-12 {
-    height: 36px !important;
+    height: 40px !important;
   }
   
   .px-8 {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
   
+  /* Trust & Reviews Grid */
   .grid-cols-3, .grid-cols-4 {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
   
-  .lg\:grid-cols-\[260px_1fr\] {
-    grid-template-columns: 1fr !important;
+  /* Review Cards */
+  .bg-card {
+    padding: 14px !important;
   }
   
+  /* Shop Sidebar */
+  .lg\:grid-cols-\[260px_1fr\] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Admin Panel */
   .p-10 {
-    padding: 16px !important;
+    padding: 12px !important;
+  }
+  
+  /* Navbar */
+  .nav {
+    padding: 0 12px !important;
+  }
+  
+  .nav-logo {
+    font-size: 18px !important;
+  }
+  
+  .nav-cart, .nav-user, .admin-btn {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  /* Filter buttons */
+  .fc {
+    padding: 6px 12px !important;
+    font-size: 10px !important;
+  }
+  
+  /* Hero image */
+  .aspect-\[4\/5\] {
+    aspect-ratio: 1/1 !important;
   }
 }
 
+/* Small Phones (up to 480px) */
 @media (max-width: 480px) {
   .product-card .product-image {
-    height: 140px !important;
+    height: 130px !important;
   }
   
   .product-name {
     font-size: 10px !important;
   }
   
+  .product-club {
+    font-size: 8px !important;
+  }
+  
+  .product-price {
+    font-size: 11px !important;
+  }
+  
   .add-to-cart {
     font-size: 9px !important;
+    padding: 4px 6px !important;
+  }
+  
+  .text-4xl {
+    font-size: 20px !important;
+  }
+  
+  .text-5xl {
+    font-size: 24px !important;
+  }
+  
+  .font-display {
+    font-size: 24px !important;
+  }
+  
+  .grid-cols-2 {
+    gap: 8px !important;
+  }
+  
+  .container-tight {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 }
 
+/* Tablets (641px - 768px) */
 @media (min-width: 641px) and (max-width: 768px) {
   .product-card .product-image {
-    height: 180px !important;
+    height: 200px !important;
+  }
+  
+  .grid-cols-2 {
+    gap: 15px !important;
   }
   
   .product-name {
-    font-size: 12px !important;
+    font-size: 13px !important;
+  }
+  
+  .text-4xl {
+    font-size: 32px !important;
+  }
+  
+  .text-5xl {
+    font-size: 36px !important;
   }
 }
 
+/* Desktop (769px and above) */
 @media (min-width: 769px) {
   .product-card .product-image {
     height: 280px !important;
   }
+  
+  .grid-cols-2 {
+    gap: 24px !important;
+  }
+}
+
+/* Fix for images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent horizontal scroll on mobile */
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Better touch targets */
+@media (max-width: 768px) {
+  button, 
+  a, 
+  .clickable,
+  .add-to-cart,
+  .fc,
+  .filter-btn,
+  .sort-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Remove tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Force container to not overflow */
+.container-tight {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure grid doesn't overflow */
+.grid {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Product card full width on mobile */
+.product-card {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fix for all sections */
+section {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Body fix */
+body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
 }
